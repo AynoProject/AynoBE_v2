@@ -53,7 +53,7 @@ jobs:
       - name: Deploy via SSM (pull & run)
         env:
           INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
-          REGISTRY: ${{ steps.ecr.login-ecr.registry }}
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REGION: ap-northeast-2
         run: |
           CMD_ID=$(aws ssm send-command \
