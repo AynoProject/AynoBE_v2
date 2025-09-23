@@ -55,7 +55,7 @@ public class SwaggerConfig {
                         .description(socialLoginGuide))
                 .servers(List.of(
                         new Server().url("http://localhost:8080").description("Local Development Server (HTTP)"),
-                        new Server().url("http://api.ayno.co.kr").description("배포 Development Server (HTTPS)")
+                        new Server().url("https://api.ayno.co.kr").description("배포 Development Server (HTTPS)")
                 ))
                 .components(new Components()
                         .addSecuritySchemes("cookieAuth", cookieScheme)
