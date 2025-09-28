@@ -10,6 +10,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,8 +22,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
-
-import javax.naming.AuthenticationException;
 
 @Slf4j
 @RestControllerAdvice
@@ -73,8 +75,30 @@ public class GlobalExceptionHandler {
     }
 
     // ---------- 401 / 403 ----------
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<Response<Void>> handleAuthentication(AuthenticationException ex) {
+    // 로그인 아이디/비밀번호 불일치(또는 사용자 없음) → 401 (유저 열거 방지를 위해 동일 메시지 권장)
+    @ExceptionHandler({ BadCredentialsException.class, UsernameNotFoundException.class, InternalAuthenticationServiceException.class })
+    public ResponseEntity<Response<Void>> handleBadCredentials(AuthenticationException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Response.fail("AUTH.UNAUTHORIZED", "아이디 또는 비밀번호가 올바르지 않습니다."));
+    }
+
+    // 계정/비번 만료 → 401
+    @ExceptionHandler({ AccountExpiredException.class, CredentialsExpiredException.class })
+    public ResponseEntity<Response<Void>> handleExpired(AuthenticationException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Response.fail("AUTH.UNAUTHORIZED", "계정 또는 비밀번호가 만료되었습니다."));
+    }
+
+    // 계정 잠금/비활성 → 403
+    @ExceptionHandler({ LockedException.class, DisabledException.class })
+    public ResponseEntity<Response<Void>> handleLockedOrDisabled(AuthenticationException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Response.fail("AUTH.FORBIDDEN", "계정이 잠금 또는 비활성화 상태입니다."));
+    }
+
+    // OAuth2 인증 실패 포함, 그 외 인증 실패 → 401
+    @ExceptionHandler({ OAuth2AuthenticationException.class, AuthenticationException.class })
+    public ResponseEntity<Response<Void>> handleAuth(AuthenticationException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Response.fail("AUTH.UNAUTHORIZED", "로그인이 필요합니다."));
     }
