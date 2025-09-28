@@ -1,5 +1,7 @@
 package com.ayno.aynobe.config.security;
 
+import com.ayno.aynobe.config.security.filter.JsonAccessDeniedHandler;
+import com.ayno.aynobe.config.security.filter.JsonAuthenticationEntryPoint;
 import com.ayno.aynobe.config.security.filter.JwtAuthenticationFilter;
 import com.ayno.aynobe.config.security.oauth.OAuth2SuccessHandler;
 import com.ayno.aynobe.config.security.service.CustomOAuth2UserService;
@@ -33,6 +35,9 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+
+    private final JsonAuthenticationEntryPoint jsonAuthenticationEntryPoint;
+    private final JsonAccessDeniedHandler jsonAccessDeniedHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
@@ -47,6 +52,10 @@ public class SecurityConfig {
                 .headers(headers -> headers
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )
+                .exceptionHandling(h -> h
+                        .authenticationEntryPoint(jsonAuthenticationEntryPoint)
+                        .accessDeniedHandler(jsonAccessDeniedHandler)
+                )
                 //경로별 인가 작업
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/swagger-ui.html",
@@ -54,7 +63,7 @@ public class SecurityConfig {
                                 "/api-docs/**",
                                 "/v3/api-docs/**",
                                 "/h2-console/**").permitAll()
-                        .requestMatchers("/api/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/oauth2/**","/login/oauth2/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2

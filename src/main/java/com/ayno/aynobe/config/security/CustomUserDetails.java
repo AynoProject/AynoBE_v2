@@ -16,10 +16,14 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
     // 우리가 만든 User 엔티티 감싸기
     private final User user;
 
-    // 기본 권한: ROLE_USER (관리자는 별도 시큐리티 체인/토큰 권장)
+    // 기본 권한: ROLE_USER (관리자는 별도 시큐리티 체인/토큰 사용 예정)
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+    }
+
+    public User getUser() {
+        return user;
     }
 
     // 일반 로그인 관련
@@ -50,7 +54,7 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
     // 기타
     @Override
     public boolean isAccountNonExpired() {
-        return true;  // 계정 만료 여부 (필요 시 DB 필드 추가해서 관리)
+        return true;  // 계정 만료 여부
     }
 
     @Override

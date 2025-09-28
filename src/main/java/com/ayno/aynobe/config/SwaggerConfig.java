@@ -89,8 +89,6 @@ public class SwaggerConfig {
                             .addProperty("serverDateTime", new StringSchema().example("2025-09-03T12:34:56.789"))
                             .addProperty("errorCode", new StringSchema().example("REQ.VALIDATION"))
                             .addProperty("errorMessage", new StringSchema().example("입력값을 확인해주세요."))
-                            .addProperty("traceId", new StringSchema().example("c7e2d7d2f8d84c5a"))
-                            .addProperty("path", new StringSchema().example("/api/example"))
                             .addProperty("data", new ObjectSchema().nullable(true).example(null))
             );
 
@@ -134,8 +132,6 @@ public class SwaggerConfig {
         body.put("serverDateTime", "2025-09-03T12:34:56.789");
         body.put("errorCode", code);
         body.put("errorMessage", message);
-        body.put("traceId", "c7e2d7d2f8d84c5a");
-        body.put("path", "/api/example");
         body.put("data", null);
 
         Example ex = new Example().summary(code).value(body);
