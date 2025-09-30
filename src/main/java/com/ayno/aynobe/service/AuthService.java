@@ -3,10 +3,7 @@ package com.ayno.aynobe.service;
 import com.ayno.aynobe.config.exception.CustomException;
 import com.ayno.aynobe.config.security.CustomUserDetails;
 import com.ayno.aynobe.config.security.service.JwtService;
-import com.ayno.aynobe.dto.auth.LoginRequestDTO;
-import com.ayno.aynobe.dto.auth.LoginTokensDTO;
-import com.ayno.aynobe.dto.auth.SignUpRequestDTO;
-import com.ayno.aynobe.dto.auth.SignUpResponseDTO;
+import com.ayno.aynobe.dto.auth.*;
 import com.ayno.aynobe.entity.User;
 import com.ayno.aynobe.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -51,10 +48,19 @@ public class AuthService {
 
         try {
             userRepository.saveAndFlush(user);
+            return new SignUpResponseDTO("회원가입이 완료되었습니다.");
         } catch (DataIntegrityViolationException e) {
             throw CustomException.duplicate("이미 사용 중인 아이디입니다.");
         }
+    }
 
-        return new SignUpResponseDTO("회원가입이 완료되었습니다.");
+    @Transactional(readOnly = true)
+    public DuplicationResponseDTO checkUsername(String username) {
+        boolean isDuplicated = userRepository.existsByUsername(username);
+
+        if (isDuplicated)
+            return new DuplicationResponseDTO(false, "이미 사용 중인 아이디입니다.");
+
+        return new DuplicationResponseDTO(true, "사용 가능한 아이디입니다.");
     }
 }

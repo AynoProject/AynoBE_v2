@@ -5,8 +5,6 @@ import com.ayno.aynobe.dto.auth.*;
 import com.ayno.aynobe.dto.common.Response;
 import com.ayno.aynobe.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -52,5 +50,17 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(Response.success(authService.signUp(request)));
+    }
+
+    @Operation(
+            summary = "아이디 중복확인",
+            description = "아이디 중복확인을 합니다"
+    )
+    @PostMapping("/check/username")
+    public ResponseEntity<Response<DuplicationResponseDTO>> checkUsername(
+            @RequestParam String username
+    ){
+        return ResponseEntity.ok()
+                .body(Response.success(authService.checkUsername(username)));
     }
 }

@@ -22,10 +22,10 @@ public class User extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @Column(length = 255)
+    @Column(length = 256)
     private String username;
 
-    @Column(length = 255)
+    @Column(length = 512)
     private String passwordHash;
 
     @Builder.Default
