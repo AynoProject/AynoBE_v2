@@ -22,11 +22,7 @@ public class AuthController {
 
     @Operation(
             summary = "로그인",
-            description = "아이디와 비밀번호를 입력하여 JWT를 발급받습니다.",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "로그인 성공"),
-                    @ApiResponse(responseCode = "401", description = "실패")
-            }
+            description = "아이디와 비밀번호를 입력하여 JWT를 발급받습니다."
     )
     @PostMapping("/login")
     public ResponseEntity<Response<LoginResponseDTO>> login(
@@ -46,12 +42,7 @@ public class AuthController {
 
     @Operation(
             summary = "회원가입",
-            description = "아이디와 비밀번호, 닉네임을 입력하여 회원가입합니다",
-            responses = {
-                    @ApiResponse(responseCode = "201", description = "회원 가입 성공"),
-                    @ApiResponse(responseCode = "409", description = "유저 중복"),
-                    @ApiResponse(responseCode = "400", description = "유효성 검사 실패")
-            }
+            description = "아이디와 비밀번호, 닉네임을 입력하여 회원가입합니다"
 
     )
     @PostMapping("/signup")
