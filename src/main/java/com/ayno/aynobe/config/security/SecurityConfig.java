@@ -6,7 +6,6 @@ import com.ayno.aynobe.config.security.filter.JwtAuthenticationFilter;
 import com.ayno.aynobe.config.security.oauth.OAuth2SuccessHandler;
 import com.ayno.aynobe.config.security.service.CustomOAuth2UserService;
 import com.ayno.aynobe.config.security.service.CustomUserDetailsService;
-import com.ayno.aynobe.config.security.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -65,6 +64,7 @@ public class SecurityConfig {
                                 "/h2-console/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/oauth2/**","/login/oauth2/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo

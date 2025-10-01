@@ -1,7 +1,7 @@
 package com.ayno.aynobe.config.security.filter;
 
-import com.ayno.aynobe.config.exception.CustomException;
 import com.ayno.aynobe.config.security.oauth.CookieFactory;
+import com.ayno.aynobe.config.security.service.CustomAdminDetailsService;
 import com.ayno.aynobe.config.security.service.CustomUserDetailsService;
 import com.ayno.aynobe.config.security.service.JwtService;
 import jakarta.servlet.FilterChain;
@@ -30,6 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
+    private final CustomAdminDetailsService adminDetailsService;
     private final CookieFactory cookieFactory;
 
     // 화이트리스트 (인증 제외)
@@ -63,10 +64,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String accessToken = getCookieValue(request, ACCESS_COOKIE);
         if (accessToken != null) {
             try {
-                String username = jwtService.extractUserId(accessToken);
-                UserDetails user = userDetailsService.loadUserByUsername(username);
-                if (jwtService.isTokenValid(accessToken, user)) {
-                    setAuthentication(request, user);
+                var tokenInfor = jwtService.payload(accessToken);
+                String username = tokenInfor.subject();
+                var roles = tokenInfor.roles();
+
+                UserDetails principal = loadByRoles(username, roles);
+
+                if (jwtService.isTokenValid(tokenInfor, principal)) {
+                    setAuthentication(request, principal);
                     chain.doFilter(request, response);
                     return;
                 }
@@ -75,20 +80,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // access 없거나 만료 → refresh 로 재발급 시도
         String refreshToken = getCookieValue(request, REFRESH_COOKIE);
-        if (refreshToken != null && jwtService.isRefreshTokenValid(refreshToken)) {
+        if (refreshToken != null) {
             try {
-                String username = jwtService.extractUserId(refreshToken);
-                UserDetails user = userDetailsService.loadUserByUsername(username);
-                String newAccess = jwtService.generateAccessToken(user);
-                response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.access(newAccess).toString());
-                setAuthentication(request, user);
+                var tokenInfor = jwtService.payload(refreshToken);
+                if (jwtService.isRefreshTokenValid(tokenInfor)) {
+                    UserDetails principal = loadByRoles(tokenInfor.subject(), tokenInfor.roles());
+                    String newAccess = jwtService.generateAccessToken(principal);
+                    response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.access(newAccess).toString());
+                    setAuthentication(request, principal);
+                }
             } catch (RuntimeException ignored) {}
         }
         chain.doFilter(request, response);
     }
 
-    /* ---------- helpers ---------- */
-
+    // 헬퍼
     private boolean isWhitelisted(String uri) {
         for (String prefix : WHITELIST_PREFIXES) {
             if (uri.startsWith(prefix)) return true;
@@ -109,5 +115,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         var auth = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
         auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+
+    private UserDetails loadByRoles(String username, List<String> roles) {
+        // roles 기준으로 어떤 DetailsService를 쓸지 결정
+        if (roles != null && roles.contains("ROLE_ADMIN")) {
+            return adminDetailsService.loadUserByUsername(username);
+        }
+        return userDetailsService.loadUserByUsername(username);
     }
 }

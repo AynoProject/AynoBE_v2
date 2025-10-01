@@ -4,12 +4,14 @@ import com.ayno.aynobe.config.exception.CustomException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
-import java.util.Date;
+import java.util.*;
 
 @Service
 public class JwtService {
@@ -20,71 +22,95 @@ public class JwtService {
     private static final long ACCESS_EXP_MS  = 1000L * 60 * 15;         // 15분
     private static final long REFRESH_EXP_MS = 1000L * 60 * 60 * 24 * 7; // 7일
 
-    // --- 발급 ---
-    public String generateAccessToken(UserDetails user) {
-        return generateToken(user.getUsername(), ACCESS_EXP_MS);
+    // 캐싱
+    private Key signKey;
+    private JwtParser jwtParser;
+
+    @PostConstruct
+    void init() {
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        this.signKey = Keys.hmacShaKeyFor(keyBytes);
+        this.jwtParser = Jwts.parserBuilder().setSigningKey(this.signKey).build();
     }
 
-    public String generateRefreshToken(UserDetails user) {
-        return generateToken(user.getUsername(), REFRESH_EXP_MS);
+    // 발급
+    public String generateAccessToken(UserDetails principal) {
+        return generateToken(principal, ACCESS_EXP_MS, "access");
     }
 
-    private String generateToken(String subject, long expMillis) {
+    public String generateRefreshToken(UserDetails principal) {
+        return generateToken(principal, REFRESH_EXP_MS, "refresh");
+    }
+
+    private String generateToken(UserDetails subject, long expMillis, String tokenType) {
         long now = System.currentTimeMillis();
+        // 권한을 문자열로 저장 (ROLE_USER, ROLE_ADMIN ...)
+        List<String> roles = subject.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("roles", roles);
+        claims.put("token_type", tokenType);
+
         return Jwts.builder()
-                .setSubject(subject)
+                .setClaims(claims)
+                .setSubject(subject.getUsername())
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(now + expMillis))
-                .signWith(signKey(), SignatureAlgorithm.HS256)
+                .signWith(signKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // --- 검증/파싱 ---
+    // 파싱
+    public record JwtPayload(String subject, List<String> roles, Date expiration, String tokenType) { }
+
+    public JwtPayload payload(String token) throws JwtException {
+        var body = jwtParser.parseClaimsJws(token).getBody();
+        String subject = body.getSubject();
+        Date exp = body.getExpiration();
+
+        Object t = body.get("token_type");
+        String tokenType = (t == null) ? null : String.valueOf(t);
+
+        Object v = body.get("roles");
+        List<String> roles = (v instanceof List<?> list)
+                ? list.stream().map(String::valueOf).toList()
+                : List.of();
+
+        return new JwtPayload(subject, roles, exp, tokenType);
+    }
+
+    // 검증
     public String extractUserId(String token) {
         try {
-            return parseClaims(token).getBody().getSubject();
-        } catch (ExpiredJwtException e) {
+            return payload(token).subject();
+        }
+        catch (ExpiredJwtException e) {
             throw CustomException.unauthorized("JWT가 만료되었습니다.");
-        } catch (MalformedJwtException | IllegalArgumentException e) {
+        }
+        catch (MalformedJwtException | IllegalArgumentException e) {
             throw CustomException.unauthorized("잘못된 JWT 형식입니다.");
-        } catch (SignatureException e) {
-            throw CustomException.unauthorized("JWT 서명이 유효하지 않습니다.");
-        } catch (JwtException e) {
+        }
+        catch (JwtException e) {
             throw CustomException.unauthorized("JWT 검증에 실패했습니다.");
         }
     }
 
-    // 액세스 토큰 검증: 사용자 일치 + 만료 여부
-    public boolean isTokenValid(String token, UserDetails user) {
+    public List<String> extractRoles(String token) {
         try {
-            Jws<Claims> jws = parseClaims(token);
-            String sub = jws.getBody().getSubject();
-            Date exp   = jws.getBody().getExpiration();
-            return user.getUsername().equals(sub) && exp.after(new Date());
-        } catch (JwtException e) {
-            return false;
+            return payload(token).roles();
+        }
+        catch (JwtException e) {
+            return List.of();
         }
     }
 
-    // 리프레시 토큰 검증(재발급 용): 만료만 확인
-    public boolean isRefreshTokenValid(String token) {
-        try {
-            Date exp = parseClaims(token).getBody().getExpiration();
-            return exp.after(new Date());
-        } catch (JwtException e) {
-            return false;
-        }
+    public boolean isTokenValid(JwtPayload p, UserDetails user) {
+        return user.getUsername().equals(p.subject()) && p.expiration().after(new Date());
     }
 
-    private Jws<Claims> parseClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(signKey())
-                .build()
-                .parseClaimsJws(token);
-    }
-
-    private Key signKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+    public boolean isRefreshTokenValid(JwtPayload p) {
+        return "refresh".equals(p.tokenType()) && p.expiration().after(new Date());
     }
 }
