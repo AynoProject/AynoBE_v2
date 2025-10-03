@@ -4,16 +4,16 @@ import com.ayno.aynobe.config.security.filter.JsonAccessDeniedHandler;
 import com.ayno.aynobe.config.security.filter.JsonAuthenticationEntryPoint;
 import com.ayno.aynobe.config.security.filter.JwtAuthenticationFilter;
 import com.ayno.aynobe.config.security.oauth.OAuth2SuccessHandler;
+import com.ayno.aynobe.config.security.service.CustomAdminDetailsService;
 import com.ayno.aynobe.config.security.service.CustomOAuth2UserService;
 import com.ayno.aynobe.config.security.service.CustomUserDetailsService;
-import com.ayno.aynobe.config.security.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
@@ -32,7 +32,6 @@ import java.util.List;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final CustomUserDetailsService userDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
@@ -63,8 +62,10 @@ public class SecurityConfig {
                                 "/api-docs/**",
                                 "/v3/api-docs/**",
                                 "/h2-console/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/admin/auth/**").permitAll()
                         .requestMatchers("/oauth2/**","/login/oauth2/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/test").hasRole("USER")
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo
@@ -99,16 +100,42 @@ public class SecurityConfig {
 
 
     @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return provider;
+    public DaoAuthenticationProvider userAuthenticationProvider(
+            PasswordEncoder encoder,
+            CustomUserDetailsService userDetailsService
+    ) {
+        DaoAuthenticationProvider p = new DaoAuthenticationProvider();
+        p.setPasswordEncoder(encoder);
+        p.setUserDetailsService(userDetailsService);
+        return p;
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+    public DaoAuthenticationProvider adminAuthenticationProvider(
+            PasswordEncoder encoder,
+            CustomAdminDetailsService adminDetailsService
+    ) {
+        DaoAuthenticationProvider p = new DaoAuthenticationProvider();
+        p.setPasswordEncoder(encoder);
+        p.setUserDetailsService(adminDetailsService);
+        return p;
+    }
+
+    // 유저 전용 AuthenticationManager
+    @Bean(name = "userAuthManager")
+    @Primary
+    public AuthenticationManager userAuthenticationManager(
+            DaoAuthenticationProvider userAuthenticationProvider
+    ) {
+        return new ProviderManager(userAuthenticationProvider);
+    }
+
+    // 관리자 전용 AuthenticationManager
+    @Bean(name = "adminAuthManager")
+    public AuthenticationManager adminAuthenticationManager(
+            DaoAuthenticationProvider adminAuthenticationProvider
+    ) {
+        return new ProviderManager(adminAuthenticationProvider);
     }
 
 }

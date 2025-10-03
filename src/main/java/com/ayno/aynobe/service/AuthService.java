@@ -3,13 +3,10 @@ package com.ayno.aynobe.service;
 import com.ayno.aynobe.config.exception.CustomException;
 import com.ayno.aynobe.config.security.CustomUserDetails;
 import com.ayno.aynobe.config.security.service.JwtService;
-import com.ayno.aynobe.dto.auth.LoginRequestDTO;
-import com.ayno.aynobe.dto.auth.LoginTokensDTO;
-import com.ayno.aynobe.dto.auth.SignUpRequestDTO;
-import com.ayno.aynobe.dto.auth.SignUpResponseDTO;
+import com.ayno.aynobe.dto.auth.*;
 import com.ayno.aynobe.entity.User;
 import com.ayno.aynobe.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,20 +15,29 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    public AuthService(@Qualifier("userAuthManager") AuthenticationManager authenticationManager,
+                       JwtService jwtService,
+                       UserRepository userRepository,
+                       PasswordEncoder passwordEncoder) {
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
     @Transactional
     public LoginTokensDTO login(LoginRequestDTO request) {
 
         var auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUserId(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
-        var principal = (CustomUserDetails) auth.getPrincipal();
+        CustomUserDetails principal = (CustomUserDetails) auth.getPrincipal();
 
         String access  = jwtService.generateAccessToken(principal);
         String refresh = jwtService.generateRefreshToken(principal);
@@ -51,10 +57,19 @@ public class AuthService {
 
         try {
             userRepository.saveAndFlush(user);
+            return new SignUpResponseDTO("회원가입이 완료되었습니다.");
         } catch (DataIntegrityViolationException e) {
             throw CustomException.duplicate("이미 사용 중인 아이디입니다.");
         }
+    }
 
-        return new SignUpResponseDTO("회원가입이 완료되었습니다.");
+    @Transactional(readOnly = true)
+    public DuplicationResponseDTO checkUsername(String username) {
+        boolean isDuplicated = userRepository.existsByUsername(username);
+
+        if (isDuplicated)
+            return new DuplicationResponseDTO(false, "이미 사용 중인 아이디입니다.");
+
+        return new DuplicationResponseDTO(true, "사용 가능한 아이디입니다.");
     }
 }
