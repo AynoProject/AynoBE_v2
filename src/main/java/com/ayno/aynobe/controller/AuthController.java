@@ -40,7 +40,7 @@ public class AuthController {
 
     @Operation(
             summary = "회원가입",
-            description = "아이디와 비밀번호, 닉네임을 입력하여 회원가입합니다"
+            description = "아이디와 비밀번호를 입력하여 회원가입합니다"
 
     )
     @PostMapping("/signup")
