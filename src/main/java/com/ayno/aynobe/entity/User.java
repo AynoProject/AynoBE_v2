@@ -1,5 +1,6 @@
 package com.ayno.aynobe.entity;
 
+import com.ayno.aynobe.entity.enums.AgeBand;
 import com.ayno.aynobe.entity.enums.GenderType;
 import com.ayno.aynobe.entity.enums.UsageDepthType;
 import jakarta.persistence.*;
@@ -41,4 +42,8 @@ public class User extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private UsageDepthType aiUsageDepth;
+
+    @Enumerated(EnumType.STRING)     // STRING 권장 (순서 변경 안전)
+    @Column(length = 20)
+    private AgeBand ageBand;
 }

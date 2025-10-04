@@ -4,6 +4,7 @@ import com.ayno.aynobe.config.security.CustomUserDetails;
 import com.ayno.aynobe.config.security.oauth.OAuthAttributes;
 import com.ayno.aynobe.entity.LinkedAccount;
 import com.ayno.aynobe.entity.User;
+import com.ayno.aynobe.entity.enums.AgeBand;
 import com.ayno.aynobe.entity.enums.GenderType;
 import com.ayno.aynobe.entity.enums.UsageDepthType;
 import com.ayno.aynobe.repository.LinkedAccountRepository;
@@ -51,6 +52,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                                             .passwordHash(null) // 소셜-only
                                             .gender(GenderType.NONE)
                                             .aiUsageDepth(UsageDepthType.NONE)
+                                            .ageBand(AgeBand.NONE)
                                             .build()
                             ));
 

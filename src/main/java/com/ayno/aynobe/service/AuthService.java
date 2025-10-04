@@ -5,6 +5,7 @@ import com.ayno.aynobe.config.security.CustomUserDetails;
 import com.ayno.aynobe.config.security.service.JwtService;
 import com.ayno.aynobe.dto.auth.*;
 import com.ayno.aynobe.entity.User;
+import com.ayno.aynobe.entity.enums.AgeBand;
 import com.ayno.aynobe.entity.enums.GenderType;
 import com.ayno.aynobe.entity.enums.UsageDepthType;
 import com.ayno.aynobe.repository.UserRepository;
@@ -57,6 +58,7 @@ public class AuthService {
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .gender(GenderType.NONE)
                 .aiUsageDepth(UsageDepthType.NONE)
+                .ageBand(AgeBand.NONE)
                 .build();
 
         try {
