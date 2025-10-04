@@ -5,6 +5,8 @@ import com.ayno.aynobe.config.security.CustomUserDetails;
 import com.ayno.aynobe.config.security.service.JwtService;
 import com.ayno.aynobe.dto.auth.*;
 import com.ayno.aynobe.entity.User;
+import com.ayno.aynobe.entity.enums.GenderType;
+import com.ayno.aynobe.entity.enums.UsageDepthType;
 import com.ayno.aynobe.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -53,6 +55,8 @@ public class AuthService {
         User user = User.builder()
                 .username(request.getUserId())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .gender(GenderType.NONE)
+                .aiUsageDepth(UsageDepthType.NONE)
                 .build();
 
         try {

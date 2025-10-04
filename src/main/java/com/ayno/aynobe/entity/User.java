@@ -1,5 +1,7 @@
 package com.ayno.aynobe.entity;
 
+import com.ayno.aynobe.entity.enums.GenderType;
+import com.ayno.aynobe.entity.enums.UsageDepthType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,4 +33,12 @@ public class User extends BaseTimeEntity {
     @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LinkedAccount> linkedAccounts = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private GenderType gender;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private UsageDepthType aiUsageDepth;
 }
