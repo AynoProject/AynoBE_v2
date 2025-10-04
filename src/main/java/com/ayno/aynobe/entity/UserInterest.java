@@ -21,12 +21,12 @@ public class UserInterest {
 
     @MapsId("userId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "userId", foreignKey = @ForeignKey(name = "fk_userInterest_user"))
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_userInterest_user"))
     private User user;
 
     @MapsId("interestId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "interestId", foreignKey = @ForeignKey(name = "fk_userInterest_interest"))
+    @JoinColumn(name = "interest_id", foreignKey = @ForeignKey(name = "fk_userInterest_interest"))
     private Interest interest;
 
     public static UserInterest interestBuilder(User user, Interest interest) {
