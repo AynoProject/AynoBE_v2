@@ -41,13 +41,17 @@ public class User extends BaseTimeEntity {
     @Column(length = 20)
     private GenderType gender;
 
-    @Enumerated(EnumType.STRING)     // STRING 권장 (순서 변경 안전)
+    @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private AgeBand ageBand;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private UsageDepthType aiUsageDepth;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "jobRoleId")
+    private JobRole jobRole;
 
     @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
