@@ -18,6 +18,6 @@ public class UserInterestId implements Serializable {
     @Column(name = "userId", nullable = false)
     private Long userId;
 
-    @Column(name = "interestId", columnDefinition = "SMALLINT UNSIGNED", nullable = false)
+    @Column(name = "interestId", nullable = false)
     private Integer interestId;
 }
