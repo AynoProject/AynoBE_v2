@@ -23,6 +23,17 @@ public class UserController {
     private final UserService userService;
 
     @Operation(
+            summary = "내 온보딩 정보 조회"
+    )
+    @GetMapping("/me/onboarding")
+    public ResponseEntity<Response<OnboardingResponseDTO>> getMyOnboarding(
+            @AuthenticationPrincipal CustomUserDetails principal
+    ) {
+        return ResponseEntity.ok()
+                .body(Response.success(userService.getMyOnboarding(principal.getUser().getUserId())));
+    }
+
+    @Operation(
             summary = "내 온보딩 정보 저장(Upsert/부분수정)",
             description = """
             - null 필드는 변경하지 않습니다.

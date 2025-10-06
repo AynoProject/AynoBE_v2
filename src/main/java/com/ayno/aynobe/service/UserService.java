@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +22,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final JobRoleRepository jobRoleRepository;
     private final InterestRepository interestRepository;
+
+    @Transactional
+    public OnboardingResponseDTO getMyOnboarding(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> CustomException.notFound("사용자를 찾을 수 없습니다."));
+        return OnboardingResponseDTO.from(user);
+    }
 
     @Transactional
     public OnboardingResponseDTO upsertOnboarding(Long userId, OnboardingUpsertRequestDTO req) {
