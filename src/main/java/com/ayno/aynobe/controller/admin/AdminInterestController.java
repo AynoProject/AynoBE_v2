@@ -6,12 +6,13 @@ import com.ayno.aynobe.dto.interest.InterestCreateResponseDTO;
 import com.ayno.aynobe.dto.interest.InterestDeleteResponseDTO;
 import com.ayno.aynobe.service.admin.AdminInterestService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-
+@Tag(name = "AdminInterest", description = "관리자 관심요소 등록 및 삭제 관련 API")
 @RestController
 @RequestMapping("/api/admin/interests")
 @RequiredArgsConstructor

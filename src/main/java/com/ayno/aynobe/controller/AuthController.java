@@ -5,12 +5,14 @@ import com.ayno.aynobe.dto.auth.*;
 import com.ayno.aynobe.dto.common.Response;
 import com.ayno.aynobe.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Auth", description = "로그인 및 가입 관련 API")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
