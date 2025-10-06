@@ -36,7 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     // 화이트리스트 (인증 제외)
     private static final List<String> WHITELIST_PREFIXES = List.of(
             "/api/auth",
-            "api/admin/auth",
+            "/api/admin/auth",
             "/swagger-ui",
             "/swagger-ui.html",
             "/v3/api-docs",
