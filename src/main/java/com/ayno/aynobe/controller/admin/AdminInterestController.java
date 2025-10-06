@@ -22,7 +22,7 @@ public class AdminInterestController {
 
     @Operation(
             summary = "관심요소 등록",
-            description = "관리자 계정으로 JWT를 발급받습니다.")
+            description = "관리자가 관심요소를 등록합니다")
     @PostMapping
     public ResponseEntity<Response<InterestCreateResponseDTO>> createInterest(
             @RequestBody InterestCreateRequestDTO request) {
@@ -30,7 +30,9 @@ public class AdminInterestController {
                 .body(Response.success(adminInterestService.createInterest(request)));
     }
 
-    @Operation(summary = "관심요소 삭제")
+    @Operation(
+            summary = "관심요소 삭제",
+            description = "관리자가 등록되어있는 관심요소를 삭제합니다")
     @DeleteMapping("/{interestId}")
     public ResponseEntity<Response<InterestDeleteResponseDTO>> deleteInterest(
             @PathVariable Integer interestId)

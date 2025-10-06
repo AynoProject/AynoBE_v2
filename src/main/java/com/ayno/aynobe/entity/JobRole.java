@@ -3,17 +3,15 @@ package com.ayno.aynobe.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Builder(toBuilder = true)
+@Entity
 @Table(
         name = "jobRole",
         uniqueConstraints = @UniqueConstraint(name = "ux_jobRole_label", columnNames = "jobRoleLabel")
 )
-@Entity
 public class JobRole {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
