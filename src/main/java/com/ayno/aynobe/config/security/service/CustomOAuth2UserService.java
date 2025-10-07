@@ -34,7 +34,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuthAttributes attributes = OAuthAttributes.of(provider, oAuth2User.getAttributes());
 
         // DB 저장 or 조회
-        LinkedAccount linked = linkedAccountRepository.findByProviderAndProviderId(
+        LinkedAccount linked = linkedAccountRepository.findWithUser(
                         attributes.getProvider(),
                         attributes.getProviderId()
                 )
