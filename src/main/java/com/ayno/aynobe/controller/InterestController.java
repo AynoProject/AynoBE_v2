@@ -4,6 +4,7 @@ import com.ayno.aynobe.dto.common.Response;
 import com.ayno.aynobe.dto.interest.InterestListItemResponseDTO;
 import com.ayno.aynobe.service.InterestService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Tag(name = "Interest", description = "관심요소 관련 API")
 @RestController
 @RequestMapping("/api/interests")
 @RequiredArgsConstructor

@@ -6,10 +6,8 @@ import com.ayno.aynobe.entity.enums.UsageDepthType;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -56,4 +54,23 @@ public class User extends BaseTimeEntity {
     @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserInterest> userInterests = new HashSet<>();
+
+    public void changeGender(GenderType gender) { this.gender = gender; }
+
+    public void changeAiUsageDepth(UsageDepthType depth) { this.aiUsageDepth = depth; }
+
+    public void changeJobRole(JobRole jobRole) { this.jobRole = jobRole; }
+
+    public void updateInterests(Set<Integer> interestIdsToRemove,
+                                Collection<Interest> interestsToAdd) {
+        if (!interestIdsToRemove.isEmpty()) {
+            this.userInterests.removeIf(ui ->
+                    interestIdsToRemove.contains(ui.getInterest().getInterestId()));
+        }
+        if (!interestsToAdd.isEmpty()) {
+            for (Interest interest : interestsToAdd) {
+                this.userInterests.add(UserInterest.interestBuilder(this, interest));
+            }
+        }
+    }
 }
