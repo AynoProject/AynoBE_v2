@@ -16,11 +16,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AdminToolService {
 
-    private final ToolRepository adminToolService;
+    private final ToolRepository adminToolRepository;
 
     @Transactional
     public ToolCreateResponseDTO create(ToolCreateRequestDTO dto) {
-        if (adminToolService.existsByToolName(dto.getToolName())) {
+        if (adminToolRepository.existsByToolName(dto.getToolName())) {
             throw CustomException.duplicate(dto.getToolName() + " 이 이미 존재합니다");
         }
 
@@ -32,7 +32,7 @@ public class AdminToolService {
                 .build();
 
         try {
-            adminToolService.saveAndFlush(tool);
+            adminToolRepository.saveAndFlush(tool);
             return ToolCreateResponseDTO.from(tool);
         } catch (DataIntegrityViolationException e) {
             throw CustomException.duplicate(dto.getToolName() + " 이 이미 존재합니다");
@@ -41,13 +41,13 @@ public class AdminToolService {
 
     @Transactional
     public ToolDeleteResponseDTO deleteById(Long toolId) {
-        if (!adminToolService.existsById(toolId)) {
+        if (!adminToolRepository.existsById(toolId)) {
             throw CustomException.notFound("해당 도구가 없습니다.");
         }
 
         try {
-            adminToolService.deleteById(toolId);
-            adminToolService.flush();
+            adminToolRepository.deleteById(toolId);
+            adminToolRepository.flush();
             return new ToolDeleteResponseDTO(toolId);
         } catch (EmptyResultDataAccessException e) {
             throw CustomException.notFound("해당 도구가 없습니다.");
