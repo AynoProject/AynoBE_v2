@@ -13,6 +13,4 @@ public interface LinkedAccountRepository extends JpaRepository<LinkedAccount, Lo
     where la.provider = :provider and la.providerId = :providerId
     """)
     Optional<LinkedAccount> findWithUser(String provider, String providerId);
-
-    Optional<LinkedAccount> findByProviderAndProviderId(String provider, String providerId);
 }
