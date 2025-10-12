@@ -7,6 +7,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -27,4 +30,10 @@ public interface WorkflowRepository extends JpaRepository<Workflow, Long> {
             "workflowSteps.tool"
     })
     Optional<Workflow> findWithAllByWorkflowId(Long workflowId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update Workflow w " +
+            "set w.likeCount = w.likeCount + :delta " +
+            "where w.workflowId = :workflowId")
+    int updateLikeCount(@Param("workflowId") Long workflowId, @Param("delta") long delta);
 }

@@ -14,8 +14,11 @@ import lombok.*;
                 @Index(name = "idx_reaction_target", columnList = "targetType, targetId, reactionType"),
                 @Index(name = "idx_reaction_user",   columnList = "userId, reactionType")
         })
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Reaction extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
