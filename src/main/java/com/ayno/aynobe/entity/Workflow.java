@@ -1,15 +1,21 @@
 package com.ayno.aynobe.entity;
 
+import com.ayno.aynobe.dto.workflow.WorkflowCardDTO;
+import com.ayno.aynobe.dto.workflow.WorkflowDetailResponseDTO;
 import com.ayno.aynobe.entity.enums.FlowType;
 import com.ayno.aynobe.entity.enums.VisibilityType;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "workflow",
@@ -62,6 +68,42 @@ public class Workflow extends BaseTimeEntity {
 
     @Builder.Default
     @OneToMany(mappedBy = "workflow", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Fetch(FetchMode.SUBSELECT)
     private List<WorkflowStep> workflowSteps = new ArrayList<>();
+
+    // 카드용 DTO
+    public WorkflowCardDTO toCardDTO() {
+        return WorkflowCardDTO.builder()
+                .workflowId(this.workflowId)
+                .workflowTitle(this.workflowTitle)
+                .thumbnailUrl(this.thumbnailUrl)
+                .likeCount(this.likeCount)
+                .viewCount(this.viewCount)
+                .category(this.category)
+                .ownerId(this.user.getUserId())
+                .ownerName(this.user.getUsername())
+                .build();
+    }
+
+    // 디테일용 DTO (스텝/섹션 정렬 포함)
+    public WorkflowDetailResponseDTO toDetailDTO() {
+        return WorkflowDetailResponseDTO.builder()
+                .workflowId(this.workflowId)
+                .category(this.category)
+                .workflowTitle(this.workflowTitle)
+                .visibility(this.visibility)
+                .thumbnailUrl(this.thumbnailUrl)
+                .likeCount(this.likeCount)
+                .viewCount(this.viewCount)
+                .slug(this.slug)
+                .canvasJson(this.canvasJson)
+                .ownerId(this.user.getUserId())
+                .ownerName(this.user.getUsername())
+                .steps(this.workflowSteps.stream()
+                        .sorted(Comparator.comparingInt(WorkflowStep::getStepNo))
+                        .map(WorkflowStep::toDetailDTO)
+                        .collect(Collectors.toList()))
+                .build();
+    }
 }
 

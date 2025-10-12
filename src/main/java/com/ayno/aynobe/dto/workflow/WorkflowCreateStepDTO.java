@@ -7,8 +7,11 @@ import lombok.*;
 
 import java.util.List;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Schema(name = "WorkflowCreateStep")
 public class WorkflowCreateStepDTO {
 

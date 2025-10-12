@@ -1,10 +1,15 @@
 package com.ayno.aynobe.entity;
 
+import com.ayno.aynobe.dto.workflow.WorkflowDetailResponseDTO;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "workflowStep",
@@ -28,6 +33,7 @@ public class WorkflowStep extends BaseTimeEntity {
 
     @Builder.Default
     @OneToMany(mappedBy = "workflowStep", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Fetch(FetchMode.SUBSELECT)
     private List<StepSection> stepSections = new ArrayList<>();
 
     // 1부터 시작 권장
@@ -43,5 +49,20 @@ public class WorkflowStep extends BaseTimeEntity {
 
     @Column(name = "stepContent", nullable = false, columnDefinition = "TEXT")
     private String stepContent;
+
+    public WorkflowDetailResponseDTO.StepDTO toDetailDTO() {
+        return WorkflowDetailResponseDTO.StepDTO.builder()
+                .stepId(this.stepId)
+                .stepNo(this.stepNo)
+                .stepTitle(this.stepTitle)
+                .stepContent(this.stepContent)
+                .toolId(this.tool != null ? this.tool.getToolId() : null)
+                .toolName(this.tool != null ? this.tool.getToolName() : null)
+                .sections(this.stepSections.stream()
+                        .sorted(Comparator.comparingInt(StepSection::getOrderNo))
+                        .map(StepSection::toDetailDTO)
+                        .collect(Collectors.toList()))
+                .build();
+    }
 }
 

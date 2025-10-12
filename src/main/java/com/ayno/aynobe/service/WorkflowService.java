@@ -1,15 +1,18 @@
 package com.ayno.aynobe.service;
 
 import com.ayno.aynobe.config.exception.CustomException;
-import com.ayno.aynobe.dto.workflow.WorkflowCreateRequestDTO;
-import com.ayno.aynobe.dto.workflow.WorkflowCreateResponseDTO;
-import com.ayno.aynobe.dto.workflow.WorkflowDeleteResponseDTO;
+import com.ayno.aynobe.dto.common.PageResponseDTO;
+import com.ayno.aynobe.dto.workflow.*;
 import com.ayno.aynobe.entity.*;
+import com.ayno.aynobe.entity.enums.FlowType;
 import com.ayno.aynobe.entity.enums.TargetType;
+import com.ayno.aynobe.entity.enums.VisibilityType;
 import com.ayno.aynobe.repository.ReactionRepository;
 import com.ayno.aynobe.repository.ToolRepository;
 import com.ayno.aynobe.repository.WorkflowRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +26,39 @@ public class WorkflowService {
     private final WorkflowRepository workflowRepository;
     private final ReactionRepository reactionRepository;
     private final ToolRepository toolRepository;
+
+    @Transactional(readOnly = true)
+    public PageResponseDTO<WorkflowCardDTO> getCardPage(FlowType category, Pageable pageable) {
+        Page<Workflow> page = (category == null)
+                ? workflowRepository.findByVisibility(VisibilityType.PUBLIC, pageable)
+                : workflowRepository.findByVisibilityAndCategory(VisibilityType.PUBLIC, category, pageable);
+
+        List<WorkflowCardDTO> items = page.getContent().stream()
+                .map(Workflow::toCardDTO)   // ← 도메인 메서드
+                .toList();
+
+        return PageResponseDTO.<WorkflowCardDTO>builder()
+                .content(items)
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .hasNext(page.hasNext())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public WorkflowDetailResponseDTO getDetail(User actorOrNull, Long workflowId) {
+        Workflow wf = workflowRepository.findWithAllByWorkflowId(workflowId)
+                .orElseThrow(() -> CustomException.notFound("존재하지 않는 워크플로우입니다."));
+
+        boolean isOwner = actorOrNull != null && wf.getUser().getUserId().equals(actorOrNull.getUserId());
+        if (wf.getVisibility() != VisibilityType.PUBLIC && !isOwner) {
+            throw CustomException.forbidden("열람 권한이 없습니다.");
+        }
+
+        return wf.toDetailDTO();      // ← 도메인 메서드
+    }
 
     @Transactional
     public WorkflowCreateResponseDTO create(User owner, WorkflowCreateRequestDTO requestDto) {
@@ -139,7 +175,7 @@ public class WorkflowService {
                 .workflowStep(step) // 부모 연결 (mappedBy = "workflowStep")
                 .orderNo(sectionDto.getOrderNo())
                 .sectionTitle(sectionDto.getSectionTitle())
-                .stepType(sectionDto.getStepType())
+                .sectionType(sectionDto.getSectionType())
                 .promptRole(sectionDto.getPromptRole())
                 .stepContent(sectionDto.getStepContent())
                 .mediaUrl(sectionDto.getMediaUrl())

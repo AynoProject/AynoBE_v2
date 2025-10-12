@@ -1,13 +1,16 @@
 package com.ayno.aynobe.dto.workflow;
 
 import com.ayno.aynobe.entity.enums.PromptType;
-import com.ayno.aynobe.entity.enums.StepType;
+import com.ayno.aynobe.entity.enums.SectionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Schema(name = "WorkflowCreateSection")
 public class WorkflowCreateSectionDTO {
 
@@ -18,7 +21,7 @@ public class WorkflowCreateSectionDTO {
     private String sectionTitle;
 
     @NotNull
-    private StepType stepType;        // PROMPT / MEDIA / NOTE
+    private SectionType sectionType;        // PROMPT / MEDIA / NOTE
 
     @NotNull
     private PromptType promptRole;    // PROMPT일 때 의미

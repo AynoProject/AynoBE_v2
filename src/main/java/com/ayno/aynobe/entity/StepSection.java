@@ -1,7 +1,8 @@
 package com.ayno.aynobe.entity;
 
+import com.ayno.aynobe.dto.workflow.WorkflowDetailResponseDTO;
 import com.ayno.aynobe.entity.enums.PromptType;
-import com.ayno.aynobe.entity.enums.StepType;
+import com.ayno.aynobe.entity.enums.SectionType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -33,8 +34,8 @@ public class StepSection extends BaseTimeEntity {
     private String sectionTitle;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "stepType", nullable = false, length = 20)
-    private StepType stepType;   // PROMPT / MEDIA / NOTE
+    @Column(name = "sectionType", nullable = false, length = 20)
+    private SectionType sectionType;   // PROMPT / MEDIA / NOTE
 
     @Enumerated(EnumType.STRING)
     @Column(name = "promptRole", nullable = false, length = 20)
@@ -45,5 +46,17 @@ public class StepSection extends BaseTimeEntity {
 
     @Column(name = "mediaUrl", nullable = false, length = 512)
     private String mediaUrl;
+
+    public WorkflowDetailResponseDTO.SectionDTO toDetailDTO() {
+        return WorkflowDetailResponseDTO.SectionDTO.builder()
+                .sectionId(this.sectionId)
+                .orderNo(this.orderNo)
+                .sectionTitle(this.sectionTitle)
+                .stepType(this.sectionType.name())
+                .promptRole(this.promptRole.name())
+                .stepContent(this.stepContent)
+                .mediaUrl(this.mediaUrl)
+                .build();
+    }
 }
 
