@@ -4,6 +4,7 @@ import com.ayno.aynobe.config.security.CustomUserDetails;
 import com.ayno.aynobe.dto.common.Response;
 import com.ayno.aynobe.dto.workflow.WorkflowCreateRequestDTO;
 import com.ayno.aynobe.dto.workflow.WorkflowCreateResponseDTO;
+import com.ayno.aynobe.dto.workflow.WorkflowDeleteResponseDTO;
 import com.ayno.aynobe.entity.User;
 import com.ayno.aynobe.service.WorkflowService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,6 +35,19 @@ public class WorkflowController {
     ) {
         User owner = principal.getUser();
         WorkflowCreateResponseDTO res = workflowService.create(owner, requestDTO);
+        return ResponseEntity.ok(Response.success(res));
+    }
+
+    @Operation(
+            summary = "워크플로우 삭제"
+    )
+    @DeleteMapping("/{workflowId}")
+    public ResponseEntity<Response<WorkflowDeleteResponseDTO>> delete(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable Long workflowId
+    ) {
+        User actor = principal.getUser();
+        WorkflowDeleteResponseDTO res = workflowService.delete(actor, workflowId);
         return ResponseEntity.ok(Response.success(res));
     }
 }
