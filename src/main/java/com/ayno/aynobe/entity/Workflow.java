@@ -16,6 +16,7 @@ import org.hibernate.type.SqlTypes;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Entity
@@ -137,6 +138,64 @@ public class Workflow extends BaseTimeEntity {
 
         this.workflowSteps.add(step);
         return step;
+    }
+
+    /** 헤더(단순 필드) 더티체킹 */
+    public void applyHeader(com.ayno.aynobe.dto.workflow.WorkflowUpdateRequestDTO dto) {
+        this.category = dto.getCategory();
+        this.workflowTitle = dto.getWorkflowTitle();
+        this.visibility = dto.getVisibility();
+        this.thumbnailUrl = dto.getThumbnailUrl();
+        this.canvasJson = dto.getCanvasJson();
+        this.slug = dto.getSlug();
+    }
+
+    /** steps diff 동기화 (추가/수정/삭제 + 재정렬) */
+    public void syncSteps(
+            List<com.ayno.aynobe.dto.workflow.WorkflowUpdateRequestDTO.StepDTO> newSteps,
+            Map<Long, Tool> toolsById
+    ) {
+        // 기존 step 맵
+        Map<Long, WorkflowStep> existed = this.workflowSteps.stream()
+                .collect(java.util.stream.Collectors.toMap(WorkflowStep::getStepId, s -> s));
+
+        List<WorkflowStep> next = new ArrayList<>(newSteps.size());
+
+        for (var sDto : newSteps) {
+            WorkflowStep step;
+            if (sDto.getStepId() != null && existed.containsKey(sDto.getStepId())) {
+                // 수정
+                step = existed.remove(sDto.getStepId());
+                step.setStepNo(sDto.getStepNo());
+                step.setStepTitle(sDto.getStepTitle());
+                step.setStepContent(sDto.getStepContent());
+                step.setTool(sDto.getToolId() != null ? toolsById.get(sDto.getToolId()) : null);
+            } else {
+                // 추가
+                step = WorkflowStep.builder()
+                        .workflow(this)
+                        .stepNo(sDto.getStepNo())
+                        .stepTitle(sDto.getStepTitle())
+                        .stepContent(sDto.getStepContent())
+                        .tool(sDto.getToolId() != null ? toolsById.get(sDto.getToolId()) : null)
+                        .build();
+            }
+
+            // 자식 섹션 동기화
+            step.syncSections(sDto.getSections());
+
+            next.add(step);
+        }
+
+        // 삭제: existed 에 남은 step 들
+        for (WorkflowStep removed : existed.values()) {
+            removed.detachAllSections();
+            removed.setWorkflow(null);             // orphanRemoval=true → DELETE
+        }
+
+        // 교체(참조 유지) — next로 재정렬 반영
+        this.workflowSteps.clear();
+        this.workflowSteps.addAll(next);
     }
 }
 

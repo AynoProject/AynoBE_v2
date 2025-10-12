@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/workflows")
-@PreAuthorize("hasRole('USER')")
 public class WorkflowController {
 
     private final WorkflowService workflowService;
@@ -72,6 +71,21 @@ public class WorkflowController {
     ) {
         User owner = principal.getUser();
         WorkflowCreateResponseDTO res = workflowService.create(owner, requestDTO);
+        return ResponseEntity.ok(Response.success(res));
+    }
+
+
+    @Operation(
+            summary = "워크플로우 생성"
+    )
+    @PutMapping("/{workflowId}")
+    public ResponseEntity<Response<WorkflowUpdateResponseDTO>> update(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @PathVariable Long workflowId,
+            @Valid @RequestBody WorkflowUpdateRequestDTO requestDTO
+    ) {
+        User actor = principal.getUser();
+        var res = workflowService.update(actor, workflowId, requestDTO);
         return ResponseEntity.ok(Response.success(res));
     }
 

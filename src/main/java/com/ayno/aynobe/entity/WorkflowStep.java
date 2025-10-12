@@ -10,13 +10,11 @@ import org.hibernate.annotations.FetchMode;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(name = "workflowStep",
-        uniqueConstraints = @UniqueConstraint(name = "uq_step_workflow_seq",
-                columnNames = {"workflowId","stepNo"}),
-        indexes = @Index(name = "idx_step_workflow", columnList = "workflowId, stepNo"))
+@Table(name = "workflowStep")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -80,6 +78,59 @@ public class WorkflowStep extends BaseTimeEntity {
 
         this.stepSections.add(section);
         return section;
+    }
+
+    /** sections diff 동기화 */
+    public void syncSections(
+            List<com.ayno.aynobe.dto.workflow.WorkflowUpdateRequestDTO.SectionDTO> newSections
+    ) {
+        Map<Long, StepSection> existed = this.stepSections.stream()
+                .collect(java.util.stream.Collectors.toMap(StepSection::getSectionId, s -> s));
+
+        List<StepSection> next = new ArrayList<>(newSections.size());
+
+        for (var d : newSections) {
+            StepSection sec;
+            if (d.getSectionId() != null && existed.containsKey(d.getSectionId())) {
+                // 수정
+                sec = existed.remove(d.getSectionId());
+                sec.setOrderNo(d.getOrderNo());
+                sec.setSectionTitle(d.getSectionTitle());
+                sec.setSectionType(d.getSectionType());
+                sec.setPromptRole(d.getPromptRole());
+                sec.setStepContent(d.getStepContent());
+                sec.setMediaUrl(d.getMediaUrl());
+            } else {
+                // 추가
+                sec = StepSection.builder()
+                        .workflowStep(this)
+                        .orderNo(d.getOrderNo())
+                        .sectionTitle(d.getSectionTitle())
+                        .sectionType(d.getSectionType())
+                        .promptRole(d.getPromptRole())
+                        .stepContent(d.getStepContent())
+                        .mediaUrl(d.getMediaUrl())
+                        .build();
+            }
+            next.add(sec);
+        }
+
+        // 삭제
+        for (StepSection removed : existed.values()) {
+            removed.setWorkflowStep(null);         // orphanRemoval=true → DELETE
+        }
+
+        // 교체(순서 반영)
+        this.stepSections.clear();
+        this.stepSections.addAll(next);
+    }
+
+    /** 전체 분리(삭제용) */
+    public void detachAllSections() {
+        for (StepSection s : new ArrayList<>(this.stepSections)) {
+            s.setWorkflowStep(null);
+        }
+        this.stepSections.clear();
     }
 }
 
