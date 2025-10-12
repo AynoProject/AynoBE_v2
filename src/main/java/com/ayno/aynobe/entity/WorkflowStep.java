@@ -1,5 +1,6 @@
 package com.ayno.aynobe.entity;
 
+import com.ayno.aynobe.dto.workflow.WorkflowCreateRequestDTO;
 import com.ayno.aynobe.dto.workflow.WorkflowDetailResponseDTO;
 import jakarta.persistence.*;
 import lombok.*;
@@ -41,7 +42,7 @@ public class WorkflowStep extends BaseTimeEntity {
     private int stepNo;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "toolId", nullable = false)
+    @JoinColumn(name = "toolId", nullable = true)
     private Tool tool;
 
     @Column(name = "stepTitle", nullable = false, length = 100)
@@ -63,6 +64,22 @@ public class WorkflowStep extends BaseTimeEntity {
                         .map(StepSection::toDetailDTO)
                         .collect(Collectors.toList()))
                 .build();
+    }
+
+    /** 섹션 추가 (양방향 고정) */
+    public StepSection addSection(WorkflowCreateRequestDTO.SectionDTO sectionDTO) {
+        StepSection section = StepSection.builder()
+                .workflowStep(this)
+                .orderNo(sectionDTO.getOrderNo())
+                .sectionTitle(sectionDTO.getSectionTitle())
+                .sectionType(sectionDTO.getSectionType())
+                .promptRole(sectionDTO.getPromptRole())
+                .stepContent(sectionDTO.getStepContent())
+                .mediaUrl(sectionDTO.getMediaUrl())
+                .build();
+
+        this.stepSections.add(section);
+        return section;
     }
 }
 

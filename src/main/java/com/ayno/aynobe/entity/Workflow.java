@@ -1,6 +1,7 @@
 package com.ayno.aynobe.entity;
 
 import com.ayno.aynobe.dto.workflow.WorkflowCardDTO;
+import com.ayno.aynobe.dto.workflow.WorkflowCreateRequestDTO;
 import com.ayno.aynobe.dto.workflow.WorkflowDetailResponseDTO;
 import com.ayno.aynobe.entity.enums.FlowType;
 import com.ayno.aynobe.entity.enums.VisibilityType;
@@ -104,6 +105,38 @@ public class Workflow extends BaseTimeEntity {
                         .map(WorkflowStep::toDetailDTO)
                         .collect(Collectors.toList()))
                 .build();
+    }
+
+    /** 루트 생성 팩토리 (기본 필드만 세팅) */
+    public static Workflow create(User owner, WorkflowCreateRequestDTO dto) {
+        return Workflow.builder()
+                .category(dto.getCategory())
+                .workflowTitle(dto.getWorkflowTitle())
+                .user(owner)
+                .visibility(dto.getVisibility())
+                .thumbnailUrl(dto.getThumbnailUrl())
+                .canvasJson(dto.getCanvasJson())
+                .slug(dto.getSlug())
+                .build();
+    }
+
+    /** 스텝 + 섹션들을 DTO 기반으로 추가 (Tool은 이미 조회된 객체 or null) */
+    public WorkflowStep addStep(WorkflowCreateRequestDTO.StepDTO stepDTO, Tool toolOrNull) {
+        WorkflowStep step = WorkflowStep.builder()
+                .workflow(this)
+                .stepNo(stepDTO.getStepNo())
+                .stepTitle(stepDTO.getStepTitle())
+                .stepContent(stepDTO.getStepContent())
+                .tool(toolOrNull)
+                .build();
+
+        // 섹션 추가
+        if (stepDTO.getSections() != null) {
+            stepDTO.getSections().forEach(secDTO -> step.addSection(secDTO));
+        }
+
+        this.workflowSteps.add(step);
+        return step;
     }
 }
 
