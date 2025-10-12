@@ -41,6 +41,6 @@ public class Tool extends BaseTimeEntity {
     private String toolSiteUrl;
 
     @Builder.Default
-    @OneToMany(mappedBy = "tool", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "tool")
     private List<WorkflowStep> workflowSteps = new ArrayList<>();
 }

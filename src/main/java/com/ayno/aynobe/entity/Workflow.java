@@ -2,8 +2,11 @@ package com.ayno.aynobe.entity;
 
 import com.ayno.aynobe.entity.enums.FlowType;
 import com.ayno.aynobe.entity.enums.VisibilityType;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,8 +53,9 @@ public class Workflow extends BaseTimeEntity {
     private String thumbnailUrl;
 
     // JSON
+    @JdbcTypeCode(SqlTypes.JSON)             // Hibernate 6
     @Column(name = "canvasJson", columnDefinition = "json")
-    private String canvasJson;
+    private JsonNode canvasJson;
 
     @Column(name = "slug", length = 256, nullable = false)
     private String slug;
