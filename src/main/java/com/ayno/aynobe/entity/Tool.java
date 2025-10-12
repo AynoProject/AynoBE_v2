@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -36,4 +39,8 @@ public class Tool extends BaseTimeEntity {
     @Size(max = 512)
     @Column(nullable = false, length = 512)
     private String toolSiteUrl;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "tool")
+    private List<WorkflowStep> workflowSteps = new ArrayList<>();
 }

@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -66,7 +67,8 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/**","/login/oauth2/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/interests/**", "/api/jobs/**").hasAnyRole("ADMIN","USER")
-                        .requestMatchers("/api/users/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/workflows/**").permitAll()
+                        .requestMatchers("/api/users/**", "/api/workflows/**").hasRole("USER")
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo

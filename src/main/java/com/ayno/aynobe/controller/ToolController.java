@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/tools")
 @RequiredArgsConstructor
-@PreAuthorize("permitAll()")
+@PreAuthorize("hasAnyRole('ADMIN','USER')")
 public class ToolController {
 
     private final ToolService toolService;
