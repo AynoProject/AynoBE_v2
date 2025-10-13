@@ -12,7 +12,9 @@ import com.ayno.aynobe.repository.ToolRepository;
 import com.ayno.aynobe.repository.WorkflowRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,23 +30,47 @@ public class WorkflowService {
     private final ToolRepository toolRepository;
 
     @Transactional(readOnly = true)
-    public PageResponseDTO<WorkflowCardDTO> getCardPage(FlowType category, Pageable pageable) {
-        Page<Workflow> page = (category == null)
+    public PageResponseDTO<WorkflowCardDTO> getCardPage(
+            FlowType category, int page, int size, String sort
+    ) {
+        Pageable pageable = PageRequest.of(page, size, resolveSort(sort));
+
+        Page<Workflow> result = (category == null)
                 ? workflowRepository.findByVisibility(VisibilityType.PUBLIC, pageable)
                 : workflowRepository.findByVisibilityAndCategory(VisibilityType.PUBLIC, category, pageable);
 
-        List<WorkflowCardDTO> items = page.getContent().stream()
+        List<WorkflowCardDTO> items = result.getContent().stream()
                 .map(Workflow::toCardDTO)   // ← 도메인 메서드
                 .toList();
 
         return PageResponseDTO.<WorkflowCardDTO>builder()
                 .content(items)
-                .page(page.getNumber())
-                .size(page.getSize())
-                .totalElements(page.getTotalElements())
-                .totalPages(page.getTotalPages())
-                .hasNext(page.hasNext())
+                .page(result.getNumber())
+                .size(result.getSize())
+                .totalElements(result.getTotalElements())
+                .totalPages(result.getTotalPages())
+                .hasNext(result.hasNext())
                 .build();
+    }
+
+    private Sort resolveSort(String sort) {
+        String field = "createdAt";
+        Sort.Direction dir = Sort.Direction.DESC;
+
+        if (sort != null && !sort.isBlank()) {
+            String[] parts = sort.split(",", 2);
+
+            if (parts.length >= 1 && !parts[0].isBlank()) {
+                String candidate = parts[0].trim();
+                if ("createdAt".equals(candidate) || "likeCount".equals(candidate) || "viewCount".equals(candidate)) {
+                    field = candidate;
+                }
+            }
+            if (parts.length == 2 && "asc".equalsIgnoreCase(parts[1].trim())) {
+                dir = Sort.Direction.ASC;
+            }
+        }
+        return Sort.by(dir, field);
     }
 
     @Transactional(readOnly = true)

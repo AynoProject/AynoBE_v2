@@ -37,13 +37,7 @@ public class WorkflowController {
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort // createdAt/likeCount/viewCount …
     ) {
-        Sort sortSpec = Sort.by(sort.split(",")[0])
-                .descending();
-        if (sort.endsWith(",asc")) sortSpec = sortSpec.ascending();
-
-        Pageable pageable = PageRequest.of(page, size, sortSpec);
-        PageResponseDTO<WorkflowCardDTO> body = workflowService.getCardPage(category, pageable);
-        return ResponseEntity.ok(Response.success(body));
+        return ResponseEntity.ok(Response.success(workflowService.getCardPage(category, page, size, sort)));
     }
 
 
