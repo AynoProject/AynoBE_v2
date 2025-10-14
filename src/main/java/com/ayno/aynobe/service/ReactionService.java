@@ -1,14 +1,14 @@
 package com.ayno.aynobe.service;
 
 import com.ayno.aynobe.config.exception.CustomException;
-import com.ayno.aynobe.dto.reaction.WorkflowLikeResponseDTO;
+import com.ayno.aynobe.dto.reaction.ArtifactLikeResponseDTO;
+import com.ayno.aynobe.entity.Artifact;
 import com.ayno.aynobe.entity.Reaction;
 import com.ayno.aynobe.entity.User;
-import com.ayno.aynobe.entity.Workflow;
 import com.ayno.aynobe.entity.enums.ReactionType;
 import com.ayno.aynobe.entity.enums.TargetType;
+import com.ayno.aynobe.repository.ArtifactRepository;
 import com.ayno.aynobe.repository.ReactionRepository;
-import com.ayno.aynobe.repository.WorkflowRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,90 +18,86 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReactionService {
 
     private final ReactionRepository reactionRepository;
-    private final WorkflowRepository workflowRepository;
+    private final ArtifactRepository artifactRepository;
 
     @Transactional(readOnly = true)
-    public WorkflowLikeResponseDTO getWorkflowLike(User actor, Long workflowId) {
-        Workflow wf = workflowRepository.findById(workflowId)
-                .orElseThrow(() -> CustomException.notFound("존재하지 않는 워크플로우입니다."));
+    public ArtifactLikeResponseDTO getArtifactLike(User actor, Long artifactId) {
+        Artifact artifact = artifactRepository.findById(artifactId)
+                .orElseThrow(() -> CustomException.notFound("존재하지 않는 결과물입니다."));
 
         boolean liked = false;
         if (actor != null) {
             liked = reactionRepository.findByUser_UserIdAndTargetTypeAndTargetIdAndReactionType(
-                    actor.getUserId(), TargetType.WORKFLOW, workflowId, ReactionType.LIKE
+                    actor.getUserId(), TargetType.ARTIFACT, artifactId, ReactionType.LIKE
             ).isPresent();
         }
 
-        return WorkflowLikeResponseDTO.builder()
-                .workflowId(wf.getWorkflowId())
+        return ArtifactLikeResponseDTO.builder()
+                .artifactId(artifact.getArtifactId())
                 .liked(liked)
-                .likeCount(wf.getLikeCount())
+                .likeCount(artifact.getLikeCount())
                 .build();
     }
 
     @Transactional
-    public WorkflowLikeResponseDTO likeWorkflow(User actor, Long workflowId) {
-        Workflow wf = workflowRepository.findById(workflowId)
-                .orElseThrow(() -> CustomException.notFound("존재하지 않는 워크플로우입니다."));
+    public ArtifactLikeResponseDTO likeArtifact(User actor, Long artifactId) {
+        Artifact artifact = artifactRepository.findById(artifactId)
+                .orElseThrow(() -> CustomException.notFound("존재하지 않는 결과물입니다."));
 
-        // 이미 눌렀으면 그대로 반환 (멱등)
         var existed = reactionRepository.findByUser_UserIdAndTargetTypeAndTargetIdAndReactionType(
-                actor.getUserId(), TargetType.WORKFLOW, workflowId, ReactionType.LIKE);
+                actor.getUserId(), TargetType.ARTIFACT, artifactId, ReactionType.LIKE);
+
         if (existed.isPresent()) {
-            return WorkflowLikeResponseDTO.builder()
-                    .workflowId(workflowId)
+            return ArtifactLikeResponseDTO.builder()
+                    .artifactId(artifactId)
                     .liked(true)
-                    .likeCount(wf.getLikeCount())
+                    .likeCount(artifact.getLikeCount())
                     .build();
         }
 
-        // 저장 + likeCount +1
         Reaction r = Reaction.builder()
                 .user(actor)
-                .targetId(workflowId)
-                .targetType(TargetType.WORKFLOW)
+                .targetId(artifactId)
+                .targetType(TargetType.ARTIFACT)
                 .reactionType(ReactionType.LIKE)
                 .build();
         reactionRepository.save(r);
-        workflowRepository.updateLikeCount(workflowId, 1);
+        artifactRepository.updateLikeCount(artifactId, 1);
 
-        // 최신 카운트 반환 위해 다시 조회
-        Workflow refreshed = workflowRepository.findById(workflowId)
-                .orElseThrow(() -> CustomException.notFound("존재하지 않는 워크플로우입니다."));
+        Artifact refreshed = artifactRepository.findById(artifactId)
+                .orElseThrow(() -> CustomException.notFound("존재하지 않는 결과물입니다."));
 
-        return WorkflowLikeResponseDTO.builder()
-                .workflowId(workflowId)
+        return ArtifactLikeResponseDTO.builder()
+                .artifactId(artifactId)
                 .liked(true)
                 .likeCount(refreshed.getLikeCount())
                 .build();
     }
 
     @Transactional
-    public WorkflowLikeResponseDTO unlikeWorkflow(User actor, Long workflowId) {
-        Workflow wf = workflowRepository.findById(workflowId)
-                .orElseThrow(() -> CustomException.notFound("존재하지 않는 워크플로우입니다."));
+    public ArtifactLikeResponseDTO unlikeArtifact(User actor, Long artifactId) {
+        Artifact artifact = artifactRepository.findById(artifactId)
+                .orElseThrow(() -> CustomException.notFound("존재하지 않는 결과물입니다."));
 
         var existed = reactionRepository.findByUser_UserIdAndTargetTypeAndTargetIdAndReactionType(
-                actor.getUserId(), TargetType.WORKFLOW, workflowId, ReactionType.LIKE);
+                actor.getUserId(), TargetType.ARTIFACT, artifactId, ReactionType.LIKE);
 
         if (existed.isEmpty()) {
-            // 멱등: 이미 취소 상태면 그대로 반환
-            return WorkflowLikeResponseDTO.builder()
-                    .workflowId(workflowId)
+            return ArtifactLikeResponseDTO.builder()
+                    .artifactId(artifactId)
                     .liked(false)
-                    .likeCount(wf.getLikeCount())
+                    .likeCount(artifact.getLikeCount())
                     .build();
         }
 
-        // 삭제 + likeCount -1 (하한 0은 UI에서만 고려, 서버는 단순 감소)
-        reactionRepository.deleteByUserAndTargetAndType(actor.getUserId(), TargetType.WORKFLOW, workflowId, ReactionType.LIKE);
-        workflowRepository.updateLikeCount(workflowId, -1);
+        reactionRepository.deleteByUserAndTargetAndType(actor.getUserId(), TargetType.ARTIFACT, artifactId, ReactionType.LIKE);
+        artifactRepository.updateLikeCount(artifactId, -1);
 
-        Workflow refreshed = workflowRepository.findById(workflowId)
-                .orElseThrow(() -> CustomException.notFound("존재하지 않는 워크플로우입니다."));
+        Artifact refreshed = artifactRepository.findById(artifactId)
+                .orElseThrow(() -> CustomException.notFound("존재하지 않는 결과물입니다."));
 
-        return WorkflowLikeResponseDTO.builder()
-                .workflowId(workflowId)
+        return ArtifactLikeResponseDTO.builder()
+                .artifactId(artifactId)
                 .liked(false)
                 .likeCount(Math.max(0, refreshed.getLikeCount()))
                 .build();
