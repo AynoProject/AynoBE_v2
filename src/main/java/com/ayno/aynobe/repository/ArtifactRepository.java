@@ -10,4 +10,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ArtifactRepository extends JpaRepository<Artifact, Long> {
     Page<Artifact> findByVisibility(VisibilityType visibility, Pageable pageable);
     Page<Artifact> findByVisibilityAndCategory(VisibilityType visibility, FlowType category, Pageable pageable);
+    boolean existsBySlug(String slug);
+    boolean existsBySlugAndArtifactIdNot(String slug, Long artifactId);
 }
