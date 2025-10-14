@@ -67,10 +67,8 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/**","/login/oauth2/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/interests/**", "/api/jobs/**").hasAnyRole("ADMIN","USER")
-                        .requestMatchers(HttpMethod.GET, "/api/workflows/**").permitAll()
-                        .requestMatchers("/api/users/**", "/api/workflows/**").hasRole("USER")
-                        .requestMatchers(HttpMethod.GET, "/api/reaction/**").permitAll()
-                        .requestMatchers("/api/reaction/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/workflows/**", "/api/reaction/**", "/api/artifacts/**").permitAll()
+                        .requestMatchers("/api/users/**", "/api/workflows/**", "/api/reaction/**", "/api/artifacts/**").hasRole("USER")
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo
