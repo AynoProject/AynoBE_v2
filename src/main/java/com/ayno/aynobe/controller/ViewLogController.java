@@ -16,7 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "ViewLogs", description = "아티팩트 조회 로그 API")
+@Tag(name = "ViewLog", description = "아티팩트 조회 로그 API")
 @RestController
 @RequestMapping("/api/viewlogs")
 @RequiredArgsConstructor

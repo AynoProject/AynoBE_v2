@@ -43,7 +43,7 @@ public class ViewLogService {
         var existing = viewLogRepository.findByArtifact_ArtifactIdAndUser_UserIdAndVisitDate(
                 artifactId, userId, visitDate);
         if (existing.isPresent()) {
-            return ViewLogResponseDTO.from(existing.get()); // id만 반환
+            return ViewLogResponseDTO.from(existing.get());
         }
 
         try {
@@ -59,7 +59,7 @@ public class ViewLogService {
                     .build();
 
             created = viewLogRepository.save(created);
-            artifactRepository.increaseViewCount(artifactId); // 신규만 +1
+            artifactRepository.increaseViewCount(artifactId);
             return ViewLogResponseDTO.from(created);
         } catch (DataIntegrityViolationException dup) {
             var afterRace = viewLogRepository.findByArtifact_ArtifactIdAndUser_UserIdAndVisitDate(
@@ -87,6 +87,6 @@ public class ViewLogService {
         );
 
         log.endAt(exitAt); // dirty checking
-        return ViewLogResponseDTO.from(log); // id만 반환
+        return ViewLogResponseDTO.from(log);
     }
 }
