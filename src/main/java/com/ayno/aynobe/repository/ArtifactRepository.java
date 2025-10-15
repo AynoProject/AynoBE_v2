@@ -19,4 +19,8 @@ public interface ArtifactRepository extends JpaRepository<Artifact, Long> {
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update Artifact a set a.likeCount = a.likeCount + :delta where a.artifactId = :artifactId")
     int updateLikeCount(@Param("artifactId") Long artifactId, @Param("delta") long delta);
+
+    @Modifying(clearAutomatically = false, flushAutomatically = false)
+    @Query("update Artifact a set a.viewCount = a.viewCount + 1 where a.artifactId = :artifactId")
+    int increaseViewCount(Long artifactId);
 }
