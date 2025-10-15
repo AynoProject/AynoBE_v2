@@ -29,7 +29,7 @@ public class AdminViewLogController {
     @Operation(summary = "특정 사용자 열람 내역 조회(페이지네이션)")
     @GetMapping("/users/{userId}")
     public ResponseEntity<Response<PageResponseDTO<ViewLogDetailResponseDTO>>> getUserViewLogs(
-            @Parameter(description = "조회할 사용자명", example = "ayno_dev")
+            @Parameter(description = "조회할 사용자명", example = "testuser")
             @RequestParam String username,
             @Parameter(description = "조회 시작일(YYYY-MM-DD, 포함)", example = "2025-10-01")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
