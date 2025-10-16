@@ -20,6 +20,8 @@ public class ArtifactListItemResponseDTO {
     private Long likeCount;
     private VisibilityType visibility;
     private String slug;
+    @Schema(description = "연결된 워크플로우 ID (없으면 null)")
+    private Long workflowId;
 
     public static ArtifactListItemResponseDTO from(Artifact artifact) {
         return ArtifactListItemResponseDTO.builder()
@@ -31,6 +33,7 @@ public class ArtifactListItemResponseDTO {
                 .likeCount(artifact.getLikeCount())
                 .visibility(artifact.getVisibility())
                 .slug(artifact.getSlug())
+                .workflowId(artifact.getWorkflow().getWorkflowId())
                 .build();
     }
 }

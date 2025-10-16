@@ -47,45 +47,15 @@ public class Workflow extends BaseTimeEntity {
     @JoinColumn(name = "userId", nullable = false)
     private User user;
 
-    @Column(name = "viewCount", nullable = false)
-    private long viewCount = 0;
-
-    @Column(name = "likeCount", nullable = false)
-    private long likeCount = 0;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "visibility", nullable = false, length = 20)
-    private VisibilityType visibility = VisibilityType.PUBLIC;
-
-    @Column(name = "thumbnailUrl", length = 512, nullable = false)
-    private String thumbnailUrl;
-
     // JSON
     @JdbcTypeCode(SqlTypes.JSON)             // Hibernate 6
     @Column(name = "canvasJson", columnDefinition = "json")
     private JsonNode canvasJson;
 
-    @Column(name = "slug", length = 256, nullable = false)
-    private String slug;
-
     @Builder.Default
     @OneToMany(mappedBy = "workflow", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
     private List<WorkflowStep> workflowSteps = new ArrayList<>();
-
-    // 카드용 DTO
-    public WorkflowCardDTO toCardDTO() {
-        return WorkflowCardDTO.builder()
-                .workflowId(this.workflowId)
-                .workflowTitle(this.workflowTitle)
-                .thumbnailUrl(this.thumbnailUrl)
-                .likeCount(this.likeCount)
-                .viewCount(this.viewCount)
-                .category(this.category)
-                .ownerId(this.user.getUserId())
-                .ownerName(this.user.getUsername())
-                .build();
-    }
 
     // 디테일용 DTO (스텝/섹션 정렬 포함)
     public WorkflowDetailResponseDTO toDetailDTO() {
@@ -93,11 +63,6 @@ public class Workflow extends BaseTimeEntity {
                 .workflowId(this.workflowId)
                 .category(this.category)
                 .workflowTitle(this.workflowTitle)
-                .visibility(this.visibility)
-                .thumbnailUrl(this.thumbnailUrl)
-                .likeCount(this.likeCount)
-                .viewCount(this.viewCount)
-                .slug(this.slug)
                 .canvasJson(this.canvasJson)
                 .ownerId(this.user.getUserId())
                 .ownerName(this.user.getUsername())
@@ -114,10 +79,7 @@ public class Workflow extends BaseTimeEntity {
                 .category(dto.getCategory())
                 .workflowTitle(dto.getWorkflowTitle())
                 .user(owner)
-                .visibility(dto.getVisibility())
-                .thumbnailUrl(dto.getThumbnailUrl())
                 .canvasJson(dto.getCanvasJson())
-                .slug(dto.getSlug())
                 .build();
     }
 
@@ -144,10 +106,7 @@ public class Workflow extends BaseTimeEntity {
     public void applyHeader(com.ayno.aynobe.dto.workflow.WorkflowUpdateRequestDTO dto) {
         this.category = dto.getCategory();
         this.workflowTitle = dto.getWorkflowTitle();
-        this.visibility = dto.getVisibility();
-        this.thumbnailUrl = dto.getThumbnailUrl();
         this.canvasJson = dto.getCanvasJson();
-        this.slug = dto.getSlug();
     }
 
     /** steps diff 동기화 (추가/수정/삭제 + 재정렬) */

@@ -27,16 +27,7 @@ public class WorkflowUpdateRequestDTO {
     @Schema(description = "워크플로우 제목", example = "유튜브 썸네일 자동 생성")
     private String workflowTitle;
 
-    @NotNull
-    private VisibilityType visibility;
-
-    @NotBlank @Size(max = 512)
-    private String thumbnailUrl;
-
     private JsonNode canvasJson; // optional
-
-    @NotBlank @Size(max = 256)
-    private String slug;
 
     @NotEmpty @Valid
     private List<StepDTO> steps;

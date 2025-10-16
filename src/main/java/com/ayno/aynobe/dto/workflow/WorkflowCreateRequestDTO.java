@@ -3,7 +3,6 @@ package com.ayno.aynobe.dto.workflow;
 import com.ayno.aynobe.entity.enums.FlowType;
 import com.ayno.aynobe.entity.enums.PromptType;
 import com.ayno.aynobe.entity.enums.SectionType;
-import com.ayno.aynobe.entity.enums.VisibilityType;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
@@ -26,17 +25,8 @@ public class WorkflowCreateRequestDTO {
     @NotBlank @Size(max = 100)
     private String workflowTitle;
 
-    @NotNull
-    private VisibilityType visibility;
-
-    @NotBlank @Size(max = 512)
-    private String thumbnailUrl;
-
     @Schema(description = "캔버스 JSON 객체 예: {\"nodes\":[],\"edges\":[]}")
     private JsonNode canvasJson; // optional
-
-    @NotBlank @Size(max = 256)
-    private String slug;
 
     @NotEmpty @Valid
     private List<WorkflowCreateRequestDTO.StepDTO> steps;

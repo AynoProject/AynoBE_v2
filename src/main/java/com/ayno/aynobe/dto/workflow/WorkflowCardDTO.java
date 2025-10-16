@@ -14,9 +14,6 @@ import lombok.*;
 public class WorkflowCardDTO {
     private Long workflowId;
     private String workflowTitle;
-    private String thumbnailUrl;
-    private long likeCount;
-    private long viewCount;
     private FlowType category;
 
     // 카드에 필요한 최소 사용자 정보

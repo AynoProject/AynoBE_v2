@@ -1,7 +1,6 @@
 package com.ayno.aynobe.dto.workflow;
 
 import com.ayno.aynobe.entity.enums.FlowType;
-import com.ayno.aynobe.entity.enums.VisibilityType;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
@@ -17,11 +16,6 @@ public class WorkflowDetailResponseDTO {
     private Long workflowId;
     private FlowType category;
     private String workflowTitle;
-    private VisibilityType visibility;
-    private String thumbnailUrl;
-    private long likeCount;
-    private long viewCount;
-    private String slug;
     private JsonNode canvasJson;
 
     private Long ownerId;
