@@ -4,9 +4,11 @@ import com.ayno.aynobe.config.exception.CustomException;
 import com.ayno.aynobe.dto.common.PageResponseDTO;
 import com.ayno.aynobe.dto.log.ViewLogDetailResponseDTO;
 import com.ayno.aynobe.entity.User;
+import com.ayno.aynobe.entity.log.ViewLog;
 import com.ayno.aynobe.repository.UserRepository;
 import com.ayno.aynobe.repository.ViewLogRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +39,7 @@ public class AdminViewLogService {
         LocalDateTime start = from.atStartOfDay();
         LocalDateTime end = to.plusDays(1).atStartOfDay().minusSeconds(1);
 
-        var result = viewLogRepository
+        Page<ViewLog> result = viewLogRepository
                 .findByUser_UserIdAndEnteredAtBetweenOrderByEnteredAtDesc(userId, start, end, pageable);
 
         return PageResponseDTO.<ViewLogDetailResponseDTO>builder()

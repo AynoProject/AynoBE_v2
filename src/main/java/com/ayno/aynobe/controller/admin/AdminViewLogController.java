@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
-@Tag(name = "AdminViewLog", description = "관리자 전용: 뷰 로그 관리(MVP 최소)")
+@Tag(name = "AdminViewLog", description = "관리자 전용: 뷰 로그 관리 API (MVP 최소)")
 @RestController
 @RequestMapping("/api/admin/viewlogs")
 @RequiredArgsConstructor
