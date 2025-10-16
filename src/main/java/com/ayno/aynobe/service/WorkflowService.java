@@ -6,7 +6,6 @@ import com.ayno.aynobe.dto.workflow.*;
 import com.ayno.aynobe.entity.*;
 import com.ayno.aynobe.entity.enums.FlowType;
 import com.ayno.aynobe.entity.enums.TargetType;
-import com.ayno.aynobe.entity.enums.VisibilityType;
 import com.ayno.aynobe.repository.ReactionRepository;
 import com.ayno.aynobe.repository.ToolRepository;
 import com.ayno.aynobe.repository.WorkflowRepository;
@@ -29,49 +28,6 @@ public class WorkflowService {
     private final ReactionRepository reactionRepository;
     private final ToolRepository toolRepository;
 
-    @Transactional(readOnly = true)
-    public PageResponseDTO<WorkflowCardDTO> getCardPage(
-            FlowType category, int page, int size, String sort
-    ) {
-        Pageable pageable = PageRequest.of(page, size, resolveSort(sort));
-
-        Page<Workflow> result = (category == null)
-                ? workflowRepository.findByVisibility(VisibilityType.PUBLIC, pageable)
-                : workflowRepository.findByVisibilityAndCategory(VisibilityType.PUBLIC, category, pageable);
-
-        List<WorkflowCardDTO> items = result.getContent().stream()
-                .map(Workflow::toCardDTO)   // ← 도메인 메서드
-                .toList();
-
-        return PageResponseDTO.<WorkflowCardDTO>builder()
-                .content(items)
-                .page(result.getNumber())
-                .size(result.getSize())
-                .totalElements(result.getTotalElements())
-                .totalPages(result.getTotalPages())
-                .hasNext(result.hasNext())
-                .build();
-    }
-
-    private Sort resolveSort(String sort) {
-        String field = "createdAt";
-        Sort.Direction dir = Sort.Direction.DESC;
-
-        if (sort != null && !sort.isBlank()) {
-            String[] parts = sort.split(",", 2);
-
-            if (parts.length >= 1 && !parts[0].isBlank()) {
-                String candidate = parts[0].trim();
-                if ("createdAt".equals(candidate) || "likeCount".equals(candidate) || "viewCount".equals(candidate)) {
-                    field = candidate;
-                }
-            }
-            if (parts.length == 2 && "asc".equalsIgnoreCase(parts[1].trim())) {
-                dir = Sort.Direction.ASC;
-            }
-        }
-        return Sort.by(dir, field);
-    }
 
     @Transactional(readOnly = true)
     public WorkflowDetailResponseDTO getDetail(User actorOrNull, Long workflowId) {
@@ -79,7 +35,7 @@ public class WorkflowService {
                 .orElseThrow(() -> CustomException.notFound("존재하지 않는 워크플로우입니다."));
 
         boolean isOwner = actorOrNull != null && wf.getUser().getUserId().equals(actorOrNull.getUserId());
-        if (wf.getVisibility() != VisibilityType.PUBLIC && !isOwner) {
+        if (!isOwner) {
             throw CustomException.forbidden("열람 권한이 없습니다.");
         }
 

@@ -28,20 +28,6 @@ public class WorkflowController {
     private final WorkflowService workflowService;
 
     @Operation(
-            summary = "워크플로우 카드 리스트"
-    )
-    @GetMapping
-    public ResponseEntity<Response<PageResponseDTO<WorkflowCardDTO>>> getCardPage(
-            @RequestParam(required = false) FlowType category,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size,
-            @RequestParam(defaultValue = "createdAt,desc") String sort // createdAt/likeCount/viewCount …
-    ) {
-        return ResponseEntity.ok(Response.success(workflowService.getCardPage(category, page, size, sort)));
-    }
-
-
-    @Operation(
             summary = "워크플로우 상세"
     )
     @GetMapping("/{workflowId}")
@@ -70,7 +56,7 @@ public class WorkflowController {
 
 
     @Operation(
-            summary = "워크플로우 생성"
+            summary = "워크플로우 수정"
     )
     @PutMapping("/{workflowId}")
     public ResponseEntity<Response<WorkflowUpdateResponseDTO>> update(
